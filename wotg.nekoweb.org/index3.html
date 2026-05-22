@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<script src="security.js"></script>
+		<script>
+			checkAccess(2);
+		</script>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+		/>
+		<title>† WØTG — STAGE 3: ПАМЯТЬ †</title>
+		<style>
+			@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Montserrat:wght@200;400;700&family=Fira+Code:wght@300;500&display=swap');
+
+			/* Cinzel does not support ß and replaces it with SS.
+			   This override forces ß (U+00DF) to render via a fallback
+			   font that preserves it as-is. */
+			@font-face {
+				font-family: 'Cinzel';
+				src: local('Fira Code'), local('monospace');
+				unicode-range: U+00DF; /* ß */
+			}
+
+			:root {
+				--red: #ff1414;
+				--red-rgb: 255, 20, 20;
+				--red-glow: rgba(255,20,20,0.15);
+				--deep-red: #660000;
+				--gray: #333;
+				--light-gray: #888;
+				--green: #00ff88;
+			}
+
+			*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+			body, html {
+				background: #000; color: #fff;
+				font-family: 'Montserrat', sans-serif;
+				min-height: 100vh; overflow-x: hidden;
+				display: flex; justify-content: center; align-items: center;
+			}
+
+			/* ── BG ── */
+			.bg-grid {
+				position: fixed; inset: 0; z-index: 0; pointer-events: none;
+				background-image:
+					linear-gradient(rgba(255,20,20,0.04) 1px, transparent 1px),
+					linear-gradient(90deg, rgba(255,20,20,0.04) 1px, transparent 1px);
+				background-size: 40px 40px;
+			}
+			.scanline {
+				position: fixed; inset: 0; z-index: 1; pointer-events: none;
+				background: repeating-linear-gradient(
+					to bottom, transparent 0px, transparent 3px,
+					rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 4px
+				);
+			}
+
+			/* ── SHELL ── */
+			.shell {
+				position: relative; z-index: 10;
+				width: 92vw; max-width: 580px;
+				border: 1px solid var(--gray);
+				background: rgba(6, 4, 4, 0.97);
+				backdrop-filter: blur(20px);
+				padding: 0;
+				overflow: hidden;
+			}
+
+			.shell-header {
+				border-bottom: 1px solid var(--gray);
+				padding: 14px 22px;
+				display: flex; align-items: center; gap: 16px;
+				font-family: 'Fira Code', monospace;
+				font-size: 0.6rem; color: var(--light-gray);
+				letter-spacing: 3px;
+			}
+			.shell-dot { width: 7px; height: 7px; border-radius: 50%; }
+			.dot-r { background: #ff3b30; }
+			.dot-y { background: #ffcc00; }
+			.dot-g { background: #28cd41; }
+
+			/* ── PROGRESS BAR ── */
+			.progress-bar {
+				height: 2px; background: var(--gray);
+				position: relative; overflow: hidden;
+			}
+			.progress-fill {
+				height: 100%; background: var(--red);
+				width: 0%; transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+				box-shadow: 0 0 10px rgba(var(--red-rgb), 0.6);
+			}
+
+			/* ── SCREENS ── */
+			.screen { display: none; padding: 36px 28px; }
+			.screen.active { display: block; }
+
+			/* INTRO */
+			.stage-label {
+				font-family: 'Fira Code', monospace;
+				font-size: 0.55rem; letter-spacing: 5px;
+				color: var(--red); margin-bottom: 12px;
+			}
+			.stage-title {
+				font-family: 'Cinzel', serif; font-size: 1.6rem;
+				letter-spacing: 8px; color: #fff;
+				margin-bottom: 10px; line-height: 1.2;
+			}
+			.stage-subtitle {
+				font-family: 'Fira Code', monospace;
+				font-size: 0.6rem; color: var(--light-gray);
+				letter-spacing: 3px; margin-bottom: 36px; line-height: 2;
+			}
+			.start-btn {
+				display: block; width: 100%;
+				padding: 18px; background: none;
+				border: 1px solid var(--red); color: var(--red);
+				font-family: 'Montserrat', sans-serif; font-weight: 700;
+				font-size: 0.7rem; letter-spacing: 6px;
+				cursor: pointer; transition: all 0.3s;
+				text-transform: uppercase;
+			}
+			.start-btn:hover {
+				background: var(--red); color: #000;
+				box-shadow: 0 0 30px rgba(var(--red-rgb), 0.3);
+			}
+
+			/* ── QUESTION COMMON ── */
+			.q-meta {
+				font-family: 'Fira Code', monospace;
+				font-size: 0.5rem; color: var(--red);
+				letter-spacing: 4px; margin-bottom: 20px;
+			}
+			.q-text {
+				font-family: 'Cinzel', serif;
+				font-size: 1.05rem; letter-spacing: 3px;
+				color: #ccc; margin-bottom: 30px; line-height: 1.6;
+			}
+
+			/* Q1 – INPUT */
+			.q-input {
+				width: 100%; background: transparent;
+				border: none; border-bottom: 1px solid var(--gray);
+				color: #fff; font-family: 'Fira Code', monospace;
+				font-size: 0.9rem; letter-spacing: 3px;
+				padding: 14px 4px; outline: none;
+				transition: border-color 0.3s;
+				text-transform: uppercase;
+			}
+			.q-input::placeholder { color: #333; font-size: 0.7rem; }
+			.q-input:focus { border-color: var(--red); }
+
+			/* Q2 – CHOICES */
+			.choices { display: flex; flex-direction: column; gap: 10px; }
+			.choice {
+				padding: 16px 20px; border: 1px solid var(--gray);
+				background: transparent; color: #666;
+				font-family: 'Montserrat', sans-serif;
+				font-size: 0.65rem; letter-spacing: 4px;
+				cursor: pointer; transition: all 0.25s;
+				text-transform: uppercase; text-align: left;
+				position: relative; overflow: hidden;
+			}
+			.choice::before {
+				content: ''; position: absolute; inset: 0;
+				background: rgba(var(--red-rgb), 0.06);
+				transform: translateX(-100%); transition: transform 0.3s;
+			}
+			.choice:hover::before { transform: translateX(0); }
+			.choice:hover { color: #fff; border-color: rgba(var(--red-rgb), 0.5); }
+			.choice.selected { border-color: var(--red); color: var(--red); }
+			.choice.correct { border-color: var(--green); color: var(--green); }
+			.choice.wrong { border-color: #ff3b30; color: #ff3b30; }
+
+			/* Q3 – DRAG */
+			.timeline-list {
+				display: flex; flex-direction: column; gap: 8px;
+				margin-bottom: 24px;
+			}
+			.tl-item {
+				border: 1px solid var(--gray);
+				background: rgba(15,10,10,0.8);
+				padding: 14px 18px; cursor: grab;
+				user-select: none; touch-action: none;
+				display: flex; align-items: center; gap: 14px;
+				transition: border-color 0.2s;
+			}
+			.tl-item:active { cursor: grabbing; }
+			.tl-item.dragging {
+				opacity: 0.35; border-color: var(--red);
+				box-shadow: 0 0 15px rgba(var(--red-rgb),0.2);
+			}
+			.tl-item.drag-over { border-color: rgba(var(--red-rgb), 0.6); }
+			.tl-num {
+				font-family: 'Fira Code', monospace;
+				font-size: 0.55rem; color: #333; min-width: 20px;
+			}
+			.tl-text {
+				font-family: 'Cinzel', serif;
+				font-size: 0.75rem; letter-spacing: 2px; color: #999;
+				pointer-events: none;
+			}
+
+			/* SUBMIT */
+			.submit-btn {
+				display: block; width: 100%; padding: 16px;
+				background: none; border: 1px solid var(--light-gray);
+				color: var(--light-gray); cursor: pointer;
+				font-family: 'Montserrat', sans-serif; font-weight: 700;
+				font-size: 0.65rem; letter-spacing: 5px;
+				transition: all 0.35s; margin-top: 8px;
+			}
+			.submit-btn:hover {
+				border-color: var(--red); color: var(--red);
+			}
+
+			/* FEEDBACK */
+			.feedback {
+				margin-top: 20px; padding: 14px;
+				border-left: 2px solid;
+				font-family: 'Fira Code', monospace;
+				font-size: 0.6rem; letter-spacing: 2px; line-height: 1.8;
+				display: none;
+			}
+			.feedback.ok { border-color: var(--green); color: var(--green); }
+			.feedback.fail { border-color: #ff3b30; color: #ff3b30; }
+
+			/* FINAL */
+			#screen-final { text-align: center; }
+			.final-symbol {
+				font-family: 'Cinzel', serif;
+				font-size: 3rem; color: var(--red);
+				margin-bottom: 20px;
+				animation: pulse-glow 2s ease-in-out infinite;
+			}
+			@keyframes pulse-glow {
+				0%,100% { text-shadow: 0 0 10px rgba(var(--red-rgb),0.4); }
+				50% { text-shadow: 0 0 40px rgba(var(--red-rgb),0.9); }
+			}
+			.final-title {
+				font-family: 'Cinzel', serif;
+				font-size: 1.1rem; letter-spacing: 8px;
+				color: #fff; margin-bottom: 10px;
+			}
+			.final-sub {
+				font-family: 'Fira Code', monospace;
+				font-size: 0.55rem; color: var(--light-gray);
+				letter-spacing: 3px; margin-bottom: 36px; line-height: 2.2;
+			}
+			.final-btn {
+				display: block; width: 100%; padding: 18px;
+				background: none; border: 1px solid var(--green);
+				color: var(--green); cursor: pointer;
+				font-family: 'Montserrat', sans-serif; font-weight: 700;
+				font-size: 0.7rem; letter-spacing: 6px;
+				transition: all 0.3s;
+			}
+			.final-btn:hover {
+				background: var(--green); color: #000;
+				box-shadow: 0 0 30px rgba(0,255,136,0.25);
+			}
+
+			/* ERROR overlay */
+			#error-overlay {
+				position: fixed; inset: 0; z-index: 9999;
+				background: var(--red); display: none;
+				justify-content: center; align-items: center;
+				flex-direction: column; gap: 16px;
+			}
+			.err-title {
+				font-family: 'Cinzel', serif; font-size: 2rem;
+				color: #000; letter-spacing: 10px; text-align: center;
+			}
+			.err-sub {
+				font-family: 'Fira Code', monospace;
+				font-size: 0.6rem; color: rgba(0,0,0,0.6);
+				letter-spacing: 4px;
+			}
+
+			/* Ambient orb */
+			.ambient-orb {
+				position: fixed; width: 700px; height: 700px; border-radius: 50%;
+				pointer-events: none; z-index: 0;
+				background: radial-gradient(circle, rgba(var(--red-rgb),0.04) 0%, transparent 70%);
+				top: 50%; left: 50%; transform: translate(-50%,-50%);
+				animation: orb-drift 8s ease-in-out infinite;
+			}
+			@keyframes orb-drift {
+				0%,100% { transform: translate(-50%,-50%) scale(1); }
+				33%      { transform: translate(-52%,-48%) scale(1.05); }
+				66%      { transform: translate(-48%,-52%) scale(0.97); }
+			}
+
+			#atmo-canvas {
+				position: fixed; inset: 0; z-index: 0; pointer-events: none;
+				opacity: 0.6;
+			}
+
+			/* Shell enter animation */
+			.shell { animation: shell-in 0.7s cubic-bezier(0.4,0,0.2,1) forwards; }
+			@keyframes shell-in {
+				from { opacity: 0; transform: translateY(20px); }
+				to   { opacity: 1; transform: translateY(0); }
+			}
+
+			/* Error flash */
+			@keyframes error-flash {
+				0%,100% { filter: none; }
+				20%     { filter: brightness(3) saturate(0) invert(1); }
+				40%     { filter: none; }
+				60%     { filter: brightness(2) hue-rotate(120deg); }
+				80%     { filter: none; }
+			}
+			.error-flash { animation: error-flash 0.4s ease forwards; }
+		</style>
+	</head>
+	<body>
+		<div class="bg-grid"></div>
+		<div class="scanline"></div>
+		<div class="ambient-orb"></div>
+		<canvas id="atmo-canvas"></canvas>
+
+		<div id="error-overlay">
+			<div class="err-title">ПАМЯТЬ СТЁРТА</div>
+			<div class="err-sub">ВОЗВРАТ В НАЧАЛО...</div>
+		</div>
+
+		<div class="shell">
+			<div class="shell-header">
+				<span class="shell-dot dot-r"></span>
+				<span class="shell-dot dot-y"></span>
+				<span class="shell-dot dot-g"></span>
+				<span style="margin-left:8px;">
+					WØTG // STAGE_03 // MEMORY_PROTOCOL
+				</span>
+			</div>
+			<div class="progress-bar">
+				<div class="progress-fill" id="progress-fill"></div>
+			</div>
+
+			<!-- INTRO -->
+			<div class="screen active" id="screen-intro">
+				<div class="stage-label">ПРОТОКОЛ_03 // ИСПЫТАНИЕ ПАМЯТИ</div>
+				<div class="stage-title">
+					АРХИВ
+					<br />
+					ОТКРЫТ
+				</div>
+				<div class="stage-subtitle">
+					> СИСТЕМА ОБНАРУЖИЛА ПРОБЕЛ В ПАМЯТИ
+					<br />
+					> ТРЕБУЕТСЯ ВЕРИФИКАЦИЯ ЗНАНИЯ ИСТОРИИ
+					<br />
+					> ТРИ УРОВНЯ. ОДНА ОШИБКА — ВОЗВРАТ В НАЧАЛО
+					<br />
+					> ГОТОВНОСТЬ К ИСПЫТАНИЮ?
+				</div>
+				<button class="start-btn" onclick="startTrial()">
+					НАЧАТЬ ПРОТОКОЛ
+				</button>
+			</div>
+
+			<!-- Q1: дата начала проекта -->
+			<div class="screen" id="screen-q1">
+				<div class="q-meta">
+					ПРОТОКОЛ_03 // УРОВЕНЬ 01 // ВВОД ДАННЫХ
+				</div>
+				<div class="q-text">
+					В каком месяце и году был основан проект и создан канал
+					AbeR?
+				</div>
+				<input
+					class="q-input"
+					id="q1-input"
+					placeholder="МММ ГГГГ"
+					autocomplete="off"
+					spellcheck="false"
+					onkeydown="if(event.key==='Enter') checkQ1()"
+				/>
+				<div class="feedback" id="q1-fb"></div>
+				<button
+					class="submit-btn"
+					style="margin-top:24px;"
+					onclick="checkQ1()"
+				>
+					ПОДТВЕРДИТЬ ДАННЫЕ
+				</button>
+			</div>
+
+			<!-- Q2: выбор первого релиза на площадки -->
+			<div class="screen" id="screen-q2">
+				<div class="q-meta">
+					ПРОТОКОЛ_03 // УРОВЕНЬ 02 // ИДЕНТИФИКАЦИЯ
+				</div>
+				<div class="q-text">
+					Какой трек стал первым, выпущенным на стриминговые площадки?
+				</div>
+				<div class="choices">
+					<button class="choice" onclick="checkQ2(this, false)">
+						W'RST
+					</button>
+					<button class="choice" onclick="checkQ2(this, false)">
+						КИНØВ∆РЬ
+					</button>
+					<button class="choice" onclick="checkQ2(this, true)">
+						ЛЕТО 19
+					</button>
+					<button class="choice" onclick="checkQ2(this, false)">
+						СΞРН∆Я ВΞДЬМ∆
+					</button>
+				</div>
+				<div class="feedback" id="q2-fb"></div>
+			</div>
+
+			<!-- Q3: хронология событий -->
+			<div class="screen" id="screen-q3">
+				<div class="q-meta">
+					ПРОТОКОЛ_03 // УРОВЕНЬ 03 // ХРОНОЛОГИЯ
+				</div>
+				<div class="q-text">
+					Восстанови правильный порядок событий в истории проекта
+				</div>
+				<div class="timeline-list" id="timeline">
+					<div class="tl-item" draggable="true" data-order="3">
+						<span class="tl-num">—</span>
+						<span class="tl-text">
+							Смена псевдонима на WRATH OF THE GODS
+						</span>
+					</div>
+					<div class="tl-item" draggable="true" data-order="1">
+						<span class="tl-num">—</span>
+						<span class="tl-text">
+							Выход альбома ∆ßē₽ — ßē4Høçtb на Soundcloud
+						</span>
+					</div>
+					<div class="tl-item" draggable="true" data-order="4">
+						<span class="tl-num">—</span>
+						<span class="tl-text">
+							Дебютный альбом группы NIGHT TERRØRS
+						</span>
+					</div>
+					<div class="tl-item" draggable="true" data-order="2">
+						<span class="tl-num">—</span>
+						<span class="tl-text">
+							Финальная версия трека W'ЯS†
+						</span>
+					</div>
+				</div>
+				<div class="feedback" id="q3-fb"></div>
+				<button class="submit-btn" onclick="checkQ3()">
+					ПРОВЕРИТЬ ХРОНОЛОГИЮ
+				</button>
+			</div>
+
+			<!-- FINAL -->
+			<div class="screen" id="screen-final">
+				<div class="final-symbol">†</div>
+				<div class="final-title">ПАМЯТЬ ВОССТАНОВЛЕНА</div>
+				<div class="final-sub">
+					> ВЕРИФИКАЦИЯ ЗАВЕРШЕНА
+					<br />
+					> ДОСТУП К СЛЕДУЮЩЕМУ УРОВНЮ РАЗРЕШЁН
+					<br />
+					> ДОБРО ПОЖАЛОВАТЬ В ТЕНЬ
+				</div>
+				<button class="final-btn" onclick="proceedToFinal()">
+					[ ВОЙТИ В СИСТЕМУ ]
+				</button>
+			</div>
+		</div>
+
+		<script>
+			// ── STATE ──
+			let currentScreen = 'intro';
+			const totalQ = 3;
+			let answered = 0;
+
+			function setProgress(n) {
+				document.getElementById('progress-fill').style.width = (n / totalQ * 100) + '%';
+			}
+
+			function showScreen(id) {
+				document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+				document.getElementById('screen-' + id).classList.add('active');
+				currentScreen = id;
+			}
+
+			function startTrial() {
+				showScreen('q1');
+				setProgress(0);
+			}
+
+			// ── Q1: дата основания ──
+			// Принимаем: "май 2024", "мая 2024", "may 2024", "05 2024", "05.2024"
+			function checkQ1() {
+				const raw = document.getElementById('q1-input').value.trim().toLowerCase();
+				const fb = document.getElementById('q1-fb');
+				const ok =
+					raw.includes('май') && raw.includes('2024') ||
+					raw.includes('мая') && raw.includes('2024') ||
+					raw.includes('may') && raw.includes('2024') ||
+					raw === '05 2024' || raw === '05.2024' || raw === '05/2024' ||
+					raw === '23 мая 2024' || raw === '23.05.2024' || raw === '23/05/2024';
+
+				if (ok) {
+					fb.textContent = '> ПОДТВЕРЖДЕНО. МАЙ 2024 — НАЧАЛО ПЕРЕДАЧИ.';
+					fb.className = 'feedback ok'; fb.style.display = 'block';
+					answered++;
+					setTimeout(() => { showScreen('q2'); setProgress(1); }, 1100);
+				} else {
+					window.failProtocol();
+				}
+			}
+
+			// ── Q2: первый трек на площадки ──
+			let q2Locked = false;
+			function checkQ2(btn, isCorrect) {
+				if (q2Locked) return;
+				q2Locked = true;
+				const fb = document.getElementById('q2-fb');
+				document.querySelectorAll('.choice').forEach(b => b.style.pointerEvents = 'none');
+
+				if (isCorrect) {
+					btn.classList.add('correct');
+					fb.textContent = '> ВЕРНО. ЛЕТО 19 — ПЕРВЫЙ ВЫХОД НА ПЛОЩАДКИ. 23 МАЯ 2025.';
+					fb.className = 'feedback ok'; fb.style.display = 'block';
+					answered++;
+					setTimeout(() => { showScreen('q3'); setProgress(2); }, 1200);
+				} else {
+					btn.classList.add('wrong');
+					window.failProtocol();
+				}
+			}
+
+			// ── Q3: хронология ──
+			// Правильный порядок по data-order: 1,2,3,4
+			// 1 = альбом ∆ßē₽ (нояб 2024)
+			// 2 = финальная версия W'ЯS† (фев 2025)
+			// 3 = смена псевдонима (март 2025)
+			// 4 = NIGHT TERRØRS (дек 2025)
+
+			const timeline = document.getElementById('timeline');
+			let dragEl = null;
+
+			timeline.addEventListener('dragstart', e => {
+				dragEl = e.target.closest('.tl-item');
+				if (dragEl) {
+					setTimeout(() => dragEl.classList.add('dragging'), 0);
+				}
+			});
+			timeline.addEventListener('dragend', e => {
+				e.target.classList.remove('dragging');
+				document.querySelectorAll('.tl-item').forEach(el => el.classList.remove('drag-over'));
+				dragEl = null;
+				updateNumbers();
+			});
+			timeline.addEventListener('dragover', e => {
+				e.preventDefault();
+				const after = getDragAfter(timeline, e.clientY);
+				document.querySelectorAll('.tl-item').forEach(el => el.classList.remove('drag-over'));
+				if (after) {
+					after.classList.add('drag-over');
+					timeline.insertBefore(dragEl, after);
+				} else {
+					timeline.appendChild(dragEl);
+				}
+			});
+
+			// Touch
+			let touchEl = null, touchClone = null;
+			timeline.addEventListener('touchstart', e => {
+				touchEl = e.target.closest('.tl-item');
+				if (!touchEl) return;
+				touchEl.classList.add('dragging');
+			}, {passive: true});
+
+			timeline.addEventListener('touchmove', e => {
+				if (!touchEl) return;
+				e.preventDefault();
+				const touch = e.touches[0];
+				const after = getDragAfter(timeline, touch.clientY);
+				if (after) timeline.insertBefore(touchEl, after);
+				else timeline.appendChild(touchEl);
+				updateNumbers();
+			}, {passive: false});
+
+			timeline.addEventListener('touchend', () => {
+				if (touchEl) touchEl.classList.remove('dragging');
+				touchEl = null;
+				updateNumbers();
+			}, {passive: true});
+
+			function getDragAfter(container, y) {
+				const items = [...container.querySelectorAll('.tl-item:not(.dragging)')];
+				return items.reduce((closest, child) => {
+					const box = child.getBoundingClientRect();
+					const offset = y - box.top - box.height / 2;
+					if (offset < 0 && offset > closest.offset) return {offset, element: child};
+					return closest;
+				}, {offset: Number.NEGATIVE_INFINITY}).element;
+			}
+
+			function updateNumbers() {
+				document.querySelectorAll('.tl-item').forEach((el, i) => {
+					el.querySelector('.tl-num').textContent = '0' + (i + 1);
+				});
+			}
+			updateNumbers();
+
+			function checkQ3() {
+				const items = [...timeline.querySelectorAll('.tl-item')];
+				const order = items.map(el => el.getAttribute('data-order')).join('');
+				const fb = document.getElementById('q3-fb');
+
+				if (order === '1234') {
+					fb.textContent = '> ХРОНОЛОГИЯ ВЕРНА. ПАМЯТЬ ВОССТАНОВЛЕНА.';
+					fb.className = 'feedback ok'; fb.style.display = 'block';
+					answered++;
+					setProgress(3);
+					setTimeout(() => showScreen('final'), 1200);
+				} else {
+					window.failProtocol();
+				}
+			}
+
+			// ── FAIL ──
+			function failProtocol() {
+				const overlay = document.getElementById('error-overlay');
+				overlay.style.display = 'flex';
+				setTimeout(() => { window.location.href = 'index.html'; }, 1800);
+			}
+
+			// ── PROCEED ──
+			function proceedToFinal() {
+				sessionStorage.setItem('story_progress', '3');
+				document.body.style.opacity = '0';
+				document.body.style.transition = 'opacity 0.8s ease';
+				setTimeout(() => { window.location.href = 'indexPRE.html'; }, 800);
+			}
+
+			// ── ATMOSPHERIC PARTICLES ──
+			const atmo = document.getElementById('atmo-canvas');
+			const actx = atmo.getContext('2d');
+			function resizeAtmo() { atmo.width = innerWidth; atmo.height = innerHeight; }
+			window.addEventListener('resize', resizeAtmo); resizeAtmo();
+
+			class Ember {
+				constructor() { this.reset(true); }
+				reset(rand) {
+					this.x = Math.random() * atmo.width;
+					this.y = rand ? Math.random() * atmo.height : atmo.height + 5;
+					this.vx = (Math.random() - 0.5) * 0.3;
+					this.vy = -(Math.random() * 0.6 + 0.2);
+					this.life = 0; this.maxLife = 120 + Math.random() * 180;
+					this.size = Math.random() * 1.5 + 0.3;
+					this.isRed = Math.random() > 0.6;
+				}
+				update() {
+					this.x += this.vx; this.y += this.vy; this.life++;
+					if (this.life > this.maxLife) this.reset(false);
+				}
+				draw() {
+					const t = this.life / this.maxLife;
+					const alpha = t < 0.2 ? t / 0.2 : 1 - (t - 0.2) / 0.8;
+					const col = this.isRed
+						? `rgba(200,10,10,${alpha * 0.25})`
+						: `rgba(255,255,255,${alpha * 0.08})`;
+					actx.fillStyle = col;
+					actx.beginPath();
+					actx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+					actx.fill();
+				}
+			}
+
+			const embers = Array.from({length: 60}, () => new Ember());
+			function animEmbers() {
+				actx.clearRect(0, 0, atmo.width, atmo.height);
+				embers.forEach(e => { e.update(); e.draw(); });
+				requestAnimationFrame(animEmbers);
+			}
+			animEmbers();
+
+			// Patch failProtocol for visual flash
+			const _origFail = failProtocol;
+			window.failProtocol = function() {
+				document.querySelector('.shell').classList.add('error-flash');
+				setTimeout(_origFail, 350);
+			};
+		</script>
+	</body>
+</html>

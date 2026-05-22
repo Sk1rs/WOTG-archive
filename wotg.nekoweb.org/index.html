@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/png" href="star.png" />
+		<title>WRΛTH ØF THE GØDS †</title>
+		<style>
+			@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Montserrat:wght@200;400;600&display=swap');
+
+			:root {
+				--accent: #ff1414;
+				--accent-rgb: 255, 20, 20;
+				--glitch-1: #ff00ff;
+				--glitch-2: #00ffff;
+				--bg-blur: rgba(2, 0, 0, 0.97);
+				--text-dim: #444;
+				--transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+
+			body.blue-mode {
+				--accent: #0044ff;
+				--accent-rgb: 0, 68, 255;
+				--text-dim: #4466bb;
+			}
+
+			body.glitch-active {
+				filter: invert(1) contrast(200%) brightness(1.5);
+				animation: shake 0.2s infinite;
+			}
+
+			@keyframes shake {
+				0%   { transform: translate(0,0); }
+				25%  { transform: translate(-4px, 4px); }
+				50%  { transform: translate(4px, -4px); }
+				75%  { transform: translate(-4px, -4px); }
+				100% { transform: translate(0,0); }
+			}
+
+			* { cursor: crosshair !important; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+
+			body, html {
+				margin: 0; padding: 0; min-height: 100vh;
+				background-color: #030000; color: #fff;
+				font-family: 'Montserrat', sans-serif;
+				display: flex; justify-content: center; align-items: center;
+				overflow-x: hidden;
+			}
+
+			/* ── BACKGROUND LAYERS ── */
+			.bg-image {
+				position: fixed; inset: -10%; width: 120%; height: 120%;
+				background: url('logo.png') center/cover;
+				filter: blur(120px) brightness(0.03) saturate(3);
+				z-index: -5; transition: filter 1.5s ease;
+			}
+			body.blue-mode .bg-image { filter: blur(120px) brightness(0.04) saturate(1.5) hue-rotate(200deg); }
+
+			.grid-container {
+				position: fixed; inset: 0; z-index: -3;
+				perspective: 600px; overflow: hidden;
+			}
+			.grid-lines {
+				position: absolute; width: 200%; height: 200%;
+				bottom: -50%; left: -50%;
+				background-image:
+					linear-gradient(rgba(var(--accent-rgb), 0.07) 1px, transparent 1px),
+					linear-gradient(90deg, rgba(var(--accent-rgb), 0.07) 1px, transparent 1px);
+				background-size: 50px 50px;
+				transform: rotateX(60deg);
+				animation: grid-move 6s linear infinite;
+			}
+			@keyframes grid-move {
+				0%   { transform: rotateX(60deg) translateY(0); }
+				100% { transform: rotateX(60deg) translateY(50px); }
+			}
+
+			/* Noise — SVG inline, no external dependency */
+			.noise {
+				position: fixed; inset: -50%; z-index: 102; pointer-events: none;
+				width: 200%; height: 200%;
+				background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+				opacity: 0.055; animation: noise-jitter 0.18s steps(2) infinite;
+			}
+			@keyframes noise-jitter {
+				0%   { transform: translate(0,0); }
+				50%  { transform: translate(-1.5%, -1%); }
+				100% { transform: translate(1%, 1.5%); }
+			}
+
+			.vignette {
+				position: fixed; inset: 0; z-index: 103; pointer-events: none;
+				background: radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.96) 100%);
+			}
+
+			.vhs-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; overflow: hidden; }
+			.scanline {
+				position: absolute; inset: 0;
+				background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.025) 0.5%, transparent 1%);
+				background-size: 100% 4px;
+				animation: scanline 10s linear infinite;
+				z-index: 101;
+			}
+			@keyframes scanline { 0% { background-position: 0 0; } 100% { background-position: 0 100vh; } }
+
+			/* Occasional horizontal glitch line */
+			.glitch-line {
+				position: fixed; left: 0; width: 100%; height: 2px;
+				background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.4), transparent);
+				z-index: 104; pointer-events: none; opacity: 0;
+				animation: glitch-line-move 7s ease-in-out infinite;
+			}
+			@keyframes glitch-line-move {
+				0%,100% { opacity: 0; top: 20%; }
+				48%     { opacity: 0; top: 30%; }
+				50%     { opacity: 1; top: 55%; }
+				52%     { opacity: 0; top: 80%; }
+			}
+
+			#particles { position: fixed; inset: 0; z-index: -2; pointer-events: none; }
+
+			/* ── CONTAINER ── */
+			.container {
+				z-index: 200; width: 95%; max-width: 540px;
+				padding: 3.5rem 2.5rem; background: var(--bg-blur);
+				border: 1px solid rgba(var(--accent-rgb), 0.08);
+				border-top: 1px solid rgba(var(--accent-rgb), 0.2);
+				backdrop-filter: blur(80px); text-align: center;
+				margin: 40px 0;
+				box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.02);
+				animation: frame-glitch 12s infinite;
+				opacity: 0; transform: translateY(12px);
+				animation: frame-glitch 12s 0.6s infinite, fade-in 0.8s 0.2s forwards;
+			}
+			@keyframes fade-in {
+				to { opacity: 1; transform: translateY(0); }
+			}
+			@keyframes frame-glitch {
+				0%,94%  { transform: none; filter: none; }
+				95%     { transform: translateX(-4px) skewX(1.5deg); filter: hue-rotate(90deg) brightness(1.2); }
+				96%     { transform: translateX(4px) skewX(-1deg); }
+				97%     { transform: translateX(-2px); filter: none; }
+				98%,100%{ transform: none; }
+			}
+
+			/* ── LOGO ── */
+			.star-logo {
+				width: 110px; cursor: pointer; margin-bottom: 12px;
+				filter: drop-shadow(0 0 18px rgba(var(--accent-rgb), 0.15));
+				transition: filter 0.4s;
+				animation: logo-breathe 4s ease-in-out infinite;
+			}
+			.star-logo:hover { filter: drop-shadow(0 0 30px rgba(var(--accent-rgb), 0.5)); }
+			@keyframes logo-breathe {
+				0%,100% { filter: drop-shadow(0 0 10px rgba(var(--accent-rgb),0.1)); }
+				50%     { filter: drop-shadow(0 0 25px rgba(var(--accent-rgb),0.25)); }
+			}
+
+			h1 {
+				font-family: 'Cinzel', serif; font-size: 1.1rem;
+				margin-bottom: 2.5rem; letter-spacing: 10px; opacity: 0.7;
+				font-weight: 400;
+			}
+
+			/* Easter egg input */
+			#easter-input {
+				background: transparent; border: none;
+				border-bottom: 1px solid #1a1a1a; color: #333;
+				font-family: 'Cinzel', serif; text-align: center;
+				margin-bottom: 2rem; outline: none;
+				font-size: 0.6rem; letter-spacing: 2px;
+				width: 100%; transition: border-color 0.3s, color 0.3s;
+			}
+			#easter-input:focus { border-color: #2a2a2a; color: #555; }
+			#easter-input::placeholder { color: #1c1c1c; }
+
+			/* ── PLAYER ── */
+			.player-wrapper {
+				margin-bottom: 2rem;
+				border: 1px solid rgba(var(--accent-rgb), 0.08);
+				background: rgba(3, 0, 0, 0.95); padding: 22px;
+				position: relative; overflow: hidden;
+			}
+			.player-wrapper::before {
+				content: ''; position: absolute;
+				top: 0; left: 0; right: 0; height: 1px;
+				background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb),0.3), transparent);
+			}
+			#audio-title {
+				font-size: 0.58rem; letter-spacing: 5px;
+				color: var(--accent); margin-bottom: 18px;
+				text-transform: uppercase;
+				text-shadow: 0 0 15px rgba(var(--accent-rgb), 0.3);
+			}
+			.progress-container {
+				height: 8px; background: rgba(255,255,255,0.02);
+				cursor: pointer; position: relative;
+				border: 1px solid rgba(255,255,255,0.04); flex-grow: 1;
+			}
+			#progress-filled {
+				height: 100%; width: 0%; background: var(--accent);
+				pointer-events: none;
+				box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.5);
+				transition: width 0.1s linear;
+			}
+			.volume-wrapper { margin-top: 18px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+			#volume-slider { -webkit-appearance: none; width: 90px; height: 1px; background: rgba(255,255,255,0.08); outline: none; }
+			#volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 7px; height: 7px; background: var(--accent); cursor: pointer; border-radius: 50%; box-shadow: 0 0 6px rgba(var(--accent-rgb),0.6); }
+
+			/* ── BUTTONS ── */
+			.track-btn, .btn {
+				background: rgba(0,0,0,0.9); border: 1px solid rgba(var(--accent-rgb), 0.07);
+				color: var(--text-dim); padding: 15px; font-size: 0.58rem;
+				text-transform: uppercase; letter-spacing: 4px;
+				transition: var(--transition); position: relative;
+				display: block; width: 100%; overflow: hidden;
+				margin-bottom: 8px; cursor: pointer; text-decoration: none;
+				font-family: 'Montserrat', sans-serif;
+			}
+			.track-btn::after, .btn::after {
+				content: ''; position: absolute;
+				left: 0; bottom: 0; width: 0; height: 1px;
+				background: var(--accent);
+				transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+			}
+			.track-btn:hover::after, .btn:hover::after { width: 100%; }
+			.track-btn:hover, .btn:hover {
+				color: #fff; border-color: rgba(var(--accent-rgb), 0.3);
+				background: rgba(var(--accent-rgb), 0.04);
+				filter: drop-shadow(1px 0 var(--glitch-1)) drop-shadow(-1px 0 var(--glitch-2));
+			}
+			.track-btn.active {
+				color: rgba(var(--accent-rgb), 0.9);
+				border-color: rgba(var(--accent-rgb), 0.2);
+			}
+
+			/* ── MODALS ── */
+			.modal-overlay {
+				position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1000;
+				display: none; justify-content: center; align-items: center;
+				backdrop-filter: blur(40px);
+				opacity: 0; transition: opacity 0.4s;
+			}
+			.modal-overlay.active { display: flex; }
+			.modal-overlay.visible { opacity: 1; }
+			.modal-content {
+				width: 90%; max-width: 780px; max-height: 90vh;
+				padding: 40px; text-align: center;
+				display: flex; flex-direction: column;
+				border: 1px solid rgba(255,255,255,0.04);
+				border-top: 1px solid rgba(255,255,255,0.08);
+				background: rgba(4,0,0,0.6);
+			}
+			.transmission-title {
+				font-family: 'Cinzel', serif; font-size: 1.6rem;
+				letter-spacing: 14px; color: #fff; margin-bottom: 35px;
+				text-transform: uppercase; font-weight: 400;
+				text-shadow: 0 0 30px rgba(255,255,255,0.1);
+			}
+			.archive-body {
+				width: 100%; flex-grow: 1; overflow-y: auto;
+				text-align: left; padding: 22px;
+				border: 1px solid rgba(var(--accent-rgb), 0.1);
+				background: rgba(0,0,0,0.7);
+				scrollbar-width: thin; scrollbar-color: rgba(var(--accent-rgb),0.2) transparent;
+			}
+			.archive-body::-webkit-scrollbar { width: 3px; }
+			.archive-body::-webkit-scrollbar-thumb { background: rgba(var(--accent-rgb),0.3); }
+			.log-entry {
+				margin-bottom: 22px;
+				border-left: 1px solid rgba(var(--accent-rgb), 0.25);
+				padding-left: 20px; font-size: 0.72rem;
+				line-height: 2; color: #555;
+				transition: border-color 0.3s, color 0.3s;
+			}
+			.log-entry:hover { border-color: rgba(var(--accent-rgb),0.5); color: #777; }
+			.log-date {
+				font-weight: 600; color: #999; font-family: 'Cinzel', serif;
+				display: block; margin-bottom: 6px; letter-spacing: 2px;
+				font-size: 0.68rem;
+			}
+
+			body.blue-mode .hide-on-blue { display: none !important; }
+
+			/* Archive btn */
+			#archive-btn { display:none; width:100%; color:#0033cc; border-color:rgba(0,51,204,0.4); margin-top:15px; }
+
+			/* Footer */
+			footer {
+				position: absolute; bottom: 12px; width: 100%; text-align: center;
+				font-family: 'Cinzel', monospace; font-size: 0.45rem; color: #0d0d0d;
+				opacity: 0.6; pointer-events: none; letter-spacing: 2px;
+			}
+		</style>
+	</head>
+	<body oncontextmenu="return false;">
+		<div class="noise"></div>
+		<div class="vignette"></div>
+		<div class="glitch-line"></div>
+		<div class="vhs-overlay"><div class="scanline"></div></div>
+		<div class="grid-container"><div class="grid-lines"></div></div>
+		<div class="bg-image"></div>
+		<canvas id="particles"></canvas>
+
+		<!-- ABOUT MODAL -->
+		<div id="about-modal" class="modal-overlay">
+			<div class="modal-content">
+				<div class="transmission-title">T R Λ N S M I S S I O N</div>
+				<div
+					style="color:#555; font-size:0.72rem; letter-spacing:3px; line-height:3; margin-bottom:45px; text-transform:uppercase;"
+				>
+					МΞЛΛНХøЛИЯ В ЦИФРØВØМ ИСПØЛНΞНИИ.
+					<br />
+					ТРΛГИЧНЫЙ WITCH HOUSE С ПРИМΞСЬЮ
+					<br />
+					AMBIENT И DARK SYNTH.
+					<br />
+					ØT DARK AMBIENT ПØГРУЖΞНИЯ ДØ 8-BIT
+					<br />
+					НØСТΛЛЬГИИ.
+					<br />
+					<span style="color:#333">
+						ЭТØ НΞ ТЬМΛ — ЭТØ ØТСУТСТВИΞ СВΞТΛ.
+					</span>
+				</div>
+				<div
+					style="color:var(--accent); font-size:0.65rem; letter-spacing:7px; cursor:pointer;"
+					onclick="closeModal('about-modal')"
+				>
+					[ В Ξ Р Н У Т Ь С Я &nbsp; В &nbsp; Т Ξ Н Ь ]
+				</div>
+			</div>
+		</div>
+
+		<!-- ARCHIVE MODAL -->
+		<div id="archive-modal" class="modal-overlay">
+			<div class="modal-content">
+				<div
+					class="transmission-title"
+					style="color:var(--accent); letter-spacing:18px;"
+				>
+					Λ Р Х И В
+				</div>
+				<div class="archive-body">
+					<div class="log-entry">
+						<span class="log-date">23 мая 2024</span>
+						Проект начался. Создан ТГ канал AbeR. Первые ремиксы в
+						FL Studio.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">1 августа 2024</span>
+						Выход трека «Synth-days». Позиционирование как синтвейв
+						артист.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">13 августа 2024</span>
+						Первые попытки в витч-хаус (ремикс «Ту-лу-ла»).
+					</div>
+					<div class="log-entry">
+						<span class="log-date">19 сентября 2024</span>
+						День рождения. Поездка в Китай.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">26 сентября 2024</span>
+						Выход трека «Нøßøē б¥ду́щēē».
+					</div>
+					<div class="log-entry">
+						<span class="log-date">29 сентября 2024</span>
+						Выход трека «$∆D W∅ЯLD».
+					</div>
+					<div class="log-entry">
+						<span class="log-date">8 ноября 2024</span>
+						Выход альбома ∆ßē₽ — ßē4Høçtb на Soundcloud.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">27–30 декабря 2024</span>
+						Выход треков «Зима 16», «TLHR» и «End OF The Nightmare».
+					</div>
+					<div class="log-entry">
+						<span class="log-date">5–11 января 2025</span>
+						Выход «Bł∆ck høłΞ» и «EDGE OF RESISTANCE».
+					</div>
+					<div class="log-entry">
+						<span class="log-date">7 февраля 2025</span>
+						Финальная версия трека W'ЯS†.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">13 марта 2025</span>
+						Новый логотип. Смена псевдонима на WRATH OF THE GODS.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">23 мая 2025</span>
+						Выход «Лето 19» на площадки.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">25 июля 2025</span>
+						Выход совместного альбома с TLLW — MEMØRIA.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">13 июля — 2 августа 2025</span>
+						Выход «СΞРН∆Я ВΞДЬМ∆», «КИНØВ∆РЬ» и «W'RST» на площадки.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">26 декабря 2025</span>
+						Дебютный альбом группы NIGHT TERRØRS.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">10 февраля 2026</span>
+						Разделение на WRATH OF THE GODS и RITU∆L LIИE.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">27 апреля 2026</span>
+						Проекты снова соединяются в единый WRATH OF THE GODS.
+					</div>
+					<div class="log-entry">
+						<span class="log-date">3 мая 2026</span>
+						Выход Synthwave ремикса «СΞРН∆Я ВΞДЬМ∆».
+					</div>
+					<div
+						class="log-entry"
+						style="border:none; text-align:center; margin-top:30px;"
+					>
+						<span
+							class="log-date"
+							style="color:#333; letter-spacing:6px;"
+						>
+							— ИСТОРИЯ ПРОДОЛЖАЕТСЯ —
+						</span>
+					</div>
+				</div>
+				<div
+					class="btn"
+					onclick="closeModal('archive-modal')"
+					style="margin-top:18px;"
+				>
+					[ З Λ К Р Ы Т Ь ]
+				</div>
+			</div>
+		</div>
+
+		<!-- MAIN UI -->
+		<div class="container">
+			<img
+				src="star.png"
+				alt="†"
+				class="star-logo"
+				id="logo-img"
+				onclick="triggerGlitchEffect()"
+			/>
+			<br />
+			<input
+				type="text"
+				id="easter-input"
+				placeholder="· · ·"
+				autocomplete="off"
+				spellcheck="false"
+			/>
+			<h1 id="main-title">WRΛTH ØF THE GØDS</h1>
+
+			<div class="hide-on-blue">
+				<div class="player-wrapper">
+					<div id="audio-title">† СΞРН∆Я ВΞДЬМ∆ †</div>
+					<div style="display:flex; align-items:center; gap:14px;">
+						<button
+							id="play-pause"
+							style="background:none; border:1px solid rgba(255,255,255,0.07); color:#666; font-family:'Cinzel',serif; padding:9px 14px; cursor:pointer; font-size:0.55rem; letter-spacing:3px; transition:all 0.3s; white-space:nowrap;"
+							onmouseover="this.style.color='#fff'; this.style.borderColor='rgba(255,255,255,0.2)'"
+							onmouseout="this.style.color='#666'; this.style.borderColor='rgba(255,255,255,0.07)'"
+						>
+							PLAY
+						</button>
+						<div
+							class="progress-container"
+							onclick="seekTrack(event)"
+						>
+							<div id="progress-filled"></div>
+						</div>
+					</div>
+					<div class="volume-wrapper">
+						<input
+							type="range"
+							id="volume-slider"
+							min="0"
+							max="1"
+							step="0.01"
+							value="0.5"
+						/>
+					</div>
+					<audio id="main-audio" src="single witch.mp3"></audio>
+				</div>
+
+				<div class="playlist">
+					<button
+						class="track-btn active"
+						onclick="changeTrack('single witch.mp3','† СΞРН∆Я ВΞДЬМ∆ †',this)"
+					>
+						† СΞРН∆Я ВΞДЬМ∆ †
+					</button>
+					<button
+						class="track-btn"
+						onclick="changeTrack('witch rmx.mp3','СΞРН∆Я ВΞДЬМ∆ (REMIX)',this)"
+					>
+						СΞРН∆Я ВΞДЬМ∆ (REMIX)
+					</button>
+					<button
+						class="track-btn"
+						onclick="changeTrack('kinobar.mp3','КИНØВ∆РЬ',this)"
+					>
+						КИНØВ∆РЬ
+					</button>
+					<button
+						class="track-btn"
+						onclick="changeTrack('W\'RST.mp3','W\'RST',this)"
+					>
+						W'RST
+					</button>
+				</div>
+
+				<div style="margin-top:20px;">
+					<button
+						class="btn"
+						style="margin-bottom:10px;"
+						onclick="openModal('about-modal')"
+					>
+						ОБО МНЕ
+					</button>
+					<button
+						class="btn"
+						onclick="startQuest()"
+						style="margin-bottom:10px; color:var(--accent); border-color:rgba(var(--accent-rgb),0.25);"
+					>
+						[ С Л Ξ Д У Ю Щ И Й &nbsp; Э Т Λ П ]
+					</button>
+					<div
+						style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"
+					>
+						<a
+							href="https://open.spotify.com/artist/4RlFe780zlS2x7vaCXMPr8"
+							target="_blank"
+							class="btn"
+						>
+							SPOTIFY
+						</a>
+						<a
+							href="https://music.apple.com/ru/artist/wrath-of-the-gods/1823969810"
+							target="_blank"
+							class="btn"
+						>
+							APPLE
+						</a>
+						<a
+							href="https://music.yandex.ru/artist/24829340"
+							target="_blank"
+							class="btn"
+						>
+							YANDEX
+						</a>
+						<a
+							href="https://vk.ru/artist/7766226484012310760"
+							target="_blank"
+							class="btn"
+						>
+							VK MUSIC
+						</a>
+					</div>
+				</div>
+			</div>
+
+			<button
+				class="btn"
+				id="archive-btn"
+				onclick="openModal('archive-modal')"
+			>
+				Λ Р Х И В
+			</button>
+		</div>
+
+		<footer>
+			[STG_02_PARAMS]: OSC_SYNC: 415.30Hz | AUTH: CHRISTOPHER_MERLIN |
+			ENGINE: SERUM_X64 | MODE: G#_MAJOR
+		</footer>
+
+		<script>
+			function startQuest() {
+				sessionStorage.setItem('story_progress','1');
+				document.querySelector('.container').style.opacity = '0';
+				document.querySelector('.container').style.transition = 'opacity 0.6s';
+				setTimeout(() => { window.location.href = 'inex2.html'; }, 600);
+			}
+
+			function openModal(id) {
+				const m = document.getElementById(id);
+				m.style.display = 'flex';
+				requestAnimationFrame(() => m.classList.add('visible'));
+			}
+			function closeModal(id) {
+				const m = document.getElementById(id);
+				m.classList.remove('visible');
+				setTimeout(() => m.style.display = 'none', 400);
+			}
+
+			const audio = document.getElementById('main-audio');
+			const playPauseBtn = document.getElementById('play-pause');
+			const progress = document.getElementById('progress-filled');
+
+			document.getElementById('volume-slider').oninput = e => { audio.volume = e.target.value; };
+
+			playPauseBtn.onclick = () => {
+				if (audio.paused) { audio.play(); playPauseBtn.innerText = 'PAUSE'; updateProgress(); }
+				else { audio.pause(); playPauseBtn.innerText = 'PLAY'; }
+			};
+
+			function updateProgress() {
+				if (!audio.paused) {
+					progress.style.width = (audio.currentTime / audio.duration) * 100 + '%';
+					requestAnimationFrame(updateProgress);
+				}
+			}
+
+			function changeTrack(file, name, btn) {
+				audio.src = file;
+				document.getElementById('audio-title').innerText = name;
+				audio.play(); playPauseBtn.innerText = 'PAUSE';
+				document.querySelectorAll('.track-btn').forEach(b => b.classList.remove('active'));
+				btn.classList.add('active');
+				updateProgress();
+			}
+
+			function seekTrack(e) {
+				const rect = e.currentTarget.getBoundingClientRect();
+				audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+			}
+
+			document.getElementById('easter-input').oninput = e => {
+				const v = e.target.value.toLowerCase();
+				if (v === 'aber') {
+					document.body.classList.add('blue-mode');
+					document.getElementById('archive-btn').style.display = 'block';
+					document.getElementById('logo-img').src = 'aber.png';
+					document.getElementById('main-title').innerText = 'AbeR';
+					triggerGlitchEffect();
+				}
+				if (v === 'wotg') {
+					document.body.classList.remove('blue-mode');
+					document.getElementById('archive-btn').style.display = 'none';
+					document.getElementById('logo-img').src = 'star.png';
+					document.getElementById('main-title').innerText = 'WRΛTH ØF THE GØDS';
+					triggerGlitchEffect();
+				}
+				if (v === 'alone') {
+					e.target.blur();
+					document.body.style.transition = 'opacity 2s ease';
+					document.body.style.opacity = '0';
+					setTimeout(() => { window.location.href = 'void.html'; }, 2000);
+				}
+			};
+
+			function triggerGlitchEffect() {
+				document.body.classList.add('glitch-active');
+				setTimeout(() => document.body.classList.remove('glitch-active'), 240);
+			}
+
+			// Particles — crimson-tinted
+			const canvas = document.getElementById('particles');
+			const ctx = canvas.getContext('2d');
+			function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+			window.addEventListener('resize', resize); resize();
+
+			class Particle {
+				constructor() { this.reset(); }
+				reset() {
+					this.x = Math.random() * canvas.width;
+					this.y = Math.random() * canvas.height;
+					this.size = Math.random() * 1;
+					this.vy = Math.random() * 0.3 + 0.05;
+					this.vx = (Math.random() - 0.5) * 0.1;
+					this.opacity = Math.random() * 0.18 + 0.02;
+					this.red = Math.random() > 0.85; // occasional crimson spark
+				}
+				update() {
+					this.y += this.vy; this.x += this.vx;
+					if (this.y > canvas.height + 5) this.reset(), this.y = -5;
+				}
+				draw() {
+					const color = this.red
+						? `rgba(200,30,30,${this.opacity * 1.5})`
+						: `rgba(255,255,255,${this.opacity})`;
+					ctx.fillStyle = color;
+					ctx.beginPath();
+					ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+					ctx.fill();
+				}
+			}
+
+			const particles = Array.from({length: 100}, () => new Particle());
+			function animParticles() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				particles.forEach(p => { p.update(); p.draw(); });
+				requestAnimationFrame(animParticles);
+			}
+			animParticles();
+		</script>
+	</body>
+</html>

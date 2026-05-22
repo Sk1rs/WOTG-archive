@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>· · ·</title>
+		<style>
+			@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400&family=IM+Fell+English:ital@0;1&display=swap');
+
+			* { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+
+			:root {
+				--beam-color: rgba(200, 190, 160, 0.06);
+				--beam-center: rgba(255, 248, 220, 0.13);
+			}
+
+			html, body {
+				width: 100%; height: 100%; overflow: hidden;
+				background: #000;
+				font-family: 'IM Fell English', serif;
+			}
+
+			/* ─── DARKNESS ─── */
+			.void {
+				position: fixed; inset: 0;
+				background: radial-gradient(ellipse 10% 30% at 50% 0%, #0a0a0a 0%, #000 100%);
+				z-index: 0;
+			}
+
+			/* ─── LIGHT BEAM ─── */
+			.beam {
+				position: fixed;
+				top: -5%;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 0;
+				height: 0;
+				border-left: 140px solid transparent;
+				border-right: 140px solid transparent;
+				border-top: 105vh solid var(--beam-color);
+				z-index: 1;
+				pointer-events: none;
+				filter: blur(18px);
+				opacity: 0;
+				animation: beam-appear 4s 1.2s ease forwards;
+			}
+			.beam-inner {
+				position: fixed;
+				top: -5%;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 0; height: 0;
+				border-left: 40px solid transparent;
+				border-right: 40px solid transparent;
+				border-top: 80vh solid var(--beam-center);
+				z-index: 2;
+				pointer-events: none;
+				filter: blur(6px);
+				opacity: 0;
+				animation: beam-appear 4s 1.8s ease forwards;
+			}
+			@keyframes beam-appear {
+				0%   { opacity: 0; }
+				100% { opacity: 1; }
+			}
+
+			/* Beam dust particles */
+			.dust {
+				position: fixed;
+				z-index: 3;
+				pointer-events: none;
+				width: 100%; height: 100%;
+				top: 0; left: 0;
+			}
+
+			/* ─── FLOOR GLOW ─── */
+			.floor-glow {
+				position: fixed;
+				bottom: 0; left: 50%;
+				transform: translateX(-50%);
+				width: 320px; height: 80px;
+				background: radial-gradient(ellipse at center bottom, rgba(220,200,150,0.07) 0%, transparent 70%);
+				z-index: 2;
+				pointer-events: none;
+				opacity: 0;
+				animation: beam-appear 5s 2s ease forwards;
+			}
+
+			/* ─── FIGURE — SVG silhouette ─── */
+			.figure-wrap {
+				position: fixed;
+				bottom: 0;
+				left: 50%;
+				transform: translateX(-50%);
+				z-index: 10;
+				opacity: 0;
+				animation: figure-appear 5s 2.5s ease forwards;
+				width: 90px;
+			}
+			@keyframes figure-appear {
+				0%   { opacity: 0; filter: blur(8px); }
+				100% { opacity: 1; filter: blur(0px); }
+			}
+
+			/* ─── GRAIN ─── */
+			.grain {
+				position: fixed; inset: -50%;
+				width: 200%; height: 200%;
+				background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+				opacity: 0.07;
+				z-index: 100;
+				pointer-events: none;
+				animation: grain-shift 0.2s steps(2) infinite;
+			}
+			@keyframes grain-shift {
+				0%   { transform: translate(0,0); }
+				50%  { transform: translate(-1%, -1.5%); }
+				100% { transform: translate(1.5%, 1%); }
+			}
+
+			/* ─── VIGNETTE ─── */
+			.vignette {
+				position: fixed; inset: 0;
+				background: radial-gradient(ellipse at center, transparent 10%, rgba(0,0,0,0.92) 90%);
+				z-index: 99; pointer-events: none;
+			}
+
+			/* ─── TEXT ─── */
+			.text-container {
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				display: flex; flex-direction: column; align-items: center;
+				z-index: 50;
+				padding-top: 8vh;
+				pointer-events: none;
+			}
+
+			.line {
+				font-family: 'Cinzel', serif;
+				font-size: 0.52rem;
+				letter-spacing: 7px;
+				color: #fff;
+				text-transform: uppercase;
+				opacity: 0;
+				margin-bottom: 14px;
+				text-shadow: 0 0 20px rgba(255,248,200,0.15);
+				transition: opacity 0.3s;
+			}
+
+			.line.italic-line {
+				font-family: 'IM Fell English', serif;
+				font-style: italic;
+				font-size: 0.68rem;
+				letter-spacing: 3px;
+				text-transform: none;
+				color: #aaa;
+			}
+
+			.separator {
+				width: 1px;
+				height: 40px;
+				background: linear-gradient(to bottom, transparent, rgba(255,248,200,0.15), transparent);
+				opacity: 0;
+				margin-bottom: 14px;
+			}
+
+			/* ─── BOTTOM WHISPER ─── */
+			.bottom-text {
+				position: fixed;
+				bottom: 28px;
+				left: 50%;
+				transform: translateX(-50%);
+				z-index: 50;
+				text-align: center;
+				pointer-events: none;
+				opacity: 0;
+				animation: beam-appear 3s 9s ease forwards;
+			}
+			.bottom-text span {
+				font-family: 'Cinzel', serif;
+				font-size: 0.38rem;
+				letter-spacing: 6px;
+				color: #2a2a2a;
+				text-transform: uppercase;
+				display: block;
+			}
+
+			/* ─── EXIT ─── */
+			.exit-btn {
+				position: fixed;
+				top: 22px; left: 50%;
+				transform: translateX(-50%);
+				z-index: 200;
+				font-family: 'Cinzel', serif;
+				font-size: 0.38rem;
+				letter-spacing: 6px;
+				color: #111;
+				text-transform: uppercase;
+				text-decoration: none;
+				cursor: pointer !important;
+				opacity: 0;
+				animation: beam-appear 2s 12s ease forwards;
+				transition: color 0.4s;
+				background: none; border: none;
+			}
+			.exit-btn:hover { color: #444; }
+
+			/* Custom cursor dot */
+			.cursor-dot {
+				position: fixed;
+				width: 4px; height: 4px;
+				background: rgba(255,248,200,0.3);
+				border-radius: 50%;
+				pointer-events: none;
+				z-index: 9999;
+				transform: translate(-50%, -50%);
+				transition: opacity 0.3s;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="void"></div>
+		<div class="beam"></div>
+		<div class="beam-inner"></div>
+		<div class="floor-glow"></div>
+		<canvas class="dust" id="dustCanvas"></canvas>
+
+		<!-- Silhouette figure -->
+		<div class="figure-wrap">
+			<svg
+				viewBox="0 0 90 220"
+				xmlns="http://www.w3.org/2000/svg"
+				width="90"
+			>
+				<defs>
+					<radialGradient id="bodyGrad" cx="50%" cy="50%" r="50%">
+						<stop offset="0%" stop-color="#0a0a0a" />
+						<stop offset="100%" stop-color="#000" />
+					</radialGradient>
+					<filter id="blur-body">
+						<feGaussianBlur stdDeviation="0.8" />
+					</filter>
+				</defs>
+				<!-- Head -->
+				<ellipse
+					cx="45"
+					cy="22"
+					rx="11"
+					ry="13"
+					fill="#000"
+					filter="url(#blur-body)"
+				/>
+				<!-- Neck -->
+				<rect x="41" y="33" width="8" height="8" fill="#000" />
+				<!-- Shoulders & torso — hunched, drooping -->
+				<path
+					d="M18 50 Q30 42 45 41 Q60 42 72 50 Q68 55 64 54 Q55 50 45 50 Q35 50 26 54 Q22 55 18 50Z"
+					fill="#000"
+					filter="url(#blur-body)"
+				/>
+				<!-- Torso -->
+				<path
+					d="M30 50 Q28 75 29 100 Q35 105 45 105 Q55 105 61 100 Q62 75 60 50 Z"
+					fill="#000"
+					filter="url(#blur-body)"
+				/>
+				<!-- Left arm — hanging low -->
+				<path
+					d="M30 52 Q20 70 16 95 Q14 105 17 110 Q20 112 22 108 Q22 98 26 80 Q30 68 33 60 Z"
+					fill="#000"
+					filter="url(#blur-body)"
+				/>
+				<!-- Right arm — hanging low -->
+				<path
+					d="M60 52 Q70 70 74 95 Q76 105 73 110 Q70 112 68 108 Q68 98 64 80 Q60 68 57 60 Z"
+					fill="#000"
+					filter="url(#blur-body)"
+				/>
+				<!-- Left leg -->
+				<path
+					d="M33 102 Q30 140 30 175 Q30 185 35 186 Q40 186 41 175 Q42 145 44 115 Z"
+					fill="#000"
+					filter="url(#blur-body)"
+				/>
+				<!-- Right leg -->
+				<path
+					d="M57 102 Q60 140 60 175 Q60 185 55 186 Q50 186 49 175 Q48 145 46 115 Z"
+					fill="#000"
+					filter="url(#blur-body)"
+				/>
+				<!-- Feet (slight spread) -->
+				<ellipse cx="33" cy="186" rx="8" ry="4" fill="#000" />
+				<ellipse cx="57" cy="186" rx="8" ry="4" fill="#000" />
+				<!-- Slight lit edge — left side of figure from beam -->
+				<path
+					d="M18 50 Q20 70 16 95 Q14 105 17 110 Q20 112 22 108"
+					stroke="rgba(220,200,140,0.04)"
+					stroke-width="1"
+					fill="none"
+				/>
+			</svg>
+		</div>
+
+		<!-- Text that types in slowly -->
+		<div class="text-container" id="textContainer"></div>
+
+		<div class="bottom-text">
+			<span>· · · Я ? · · ·</span>
+		</div>
+
+		<button class="exit-btn" onclick="fadeOut()">
+			[ в е р н у т ь с я ]
+		</button>
+
+		<div class="grain"></div>
+		<div class="vignette"></div>
+		<div class="cursor-dot" id="cursorDot"></div>
+
+		<audio id="ambientAudio" src="losted.mp3" loop></audio>
+
+		<script>
+			// Custom cursor
+			const dot = document.getElementById('cursorDot');
+			document.addEventListener('mousemove', e => {
+				dot.style.left = e.clientX + 'px';
+				dot.style.top  = e.clientY + 'px';
+			});
+
+			// Dust particles in beam
+			const canvas = document.getElementById('dustCanvas');
+			const ctx = canvas.getContext('2d');
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+			window.addEventListener('resize', () => {
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+			});
+
+			const cx = canvas.width / 2;
+			class Dust {
+				constructor() { this.reset(); }
+				reset() {
+					// Spawn within beam cone
+					const progress = Math.random();
+					const halfWidth = 140 * progress + 5;
+					this.x = cx + (Math.random() * 2 - 1) * halfWidth;
+					this.y = Math.random() * canvas.height * 0.95;
+					this.size = Math.random() * 0.8 + 0.2;
+					this.vy = -(Math.random() * 0.15 + 0.05);
+					this.vx = (Math.random() - 0.5) * 0.08;
+					this.opacity = Math.random() * 0.12;
+					this.life = 0;
+					this.maxLife = Math.random() * 400 + 200;
+				}
+				update() {
+					this.x += this.vx;
+					this.y += this.vy;
+					this.life++;
+					if (this.life > this.maxLife) this.reset();
+				}
+				draw() {
+					const fade = Math.sin((this.life / this.maxLife) * Math.PI);
+					ctx.fillStyle = `rgba(230, 215, 170, ${this.opacity * fade})`;
+					ctx.beginPath();
+					ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+					ctx.fill();
+				}
+			}
+
+			const dustParticles = Array.from({ length: 60 }, () => new Dust());
+			let dustOpacity = 0;
+			setTimeout(() => {
+				(function animDust() {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+					dustOpacity = Math.min(1, dustOpacity + 0.005);
+					ctx.globalAlpha = dustOpacity;
+					dustParticles.forEach(p => { p.update(); p.draw(); });
+					requestAnimationFrame(animDust);
+				})();
+			}, 2000);
+
+			// Lines to reveal
+			const lines = [
+				{ text: 'В С Е', style: '', delay: 3200 },
+				{ text: '', style: 'sep', delay: 4200 },
+				{ text: 'они ушли.', style: 'italic-line', delay: 4600 },
+				{ text: 'или я их потерял.', style: 'italic-line', delay: 6000 },
+				{ text: '', style: 'sep', delay: 7200 },
+				{ text: 'Н Λ В С Е Г Д Λ', style: '', delay: 7800 },
+			];
+
+			const container = document.getElementById('textContainer');
+
+			lines.forEach(({ text, style, delay }) => {
+				setTimeout(() => {
+					if (style === 'sep') {
+						const sep = document.createElement('div');
+						sep.className = 'separator';
+						container.appendChild(sep);
+						requestAnimationFrame(() => { sep.style.opacity = '1'; sep.style.transition = 'opacity 1.5s'; });
+					} else {
+						const el = document.createElement('div');
+						el.className = 'line' + (style ? ' ' + style : '');
+						el.textContent = text;
+						container.appendChild(el);
+						requestAnimationFrame(() => {
+							requestAnimationFrame(() => {
+								el.style.opacity = '1';
+								el.style.transition = 'opacity 2.5s ease';
+							});
+						});
+					}
+				}, delay);
+			});
+
+			// Start audio quietly
+			setTimeout(() => {
+				const audio = document.getElementById('ambientAudio');
+				audio.volume = 0;
+				audio.play().catch(() => {});
+				let vol = 0;
+				const fadeIn = setInterval(() => {
+					vol = Math.min(0.35, vol + 0.003);
+					audio.volume = vol;
+					if (vol >= 0.35) clearInterval(fadeIn);
+				}, 80);
+			}, 1500);
+
+			// Occasional flicker of beam
+			setInterval(() => {
+				if (Math.random() > 0.85) {
+					document.querySelector('.beam').style.opacity = String(0.5 + Math.random() * 0.5);
+					setTimeout(() => { document.querySelector('.beam').style.opacity = '1'; }, 120);
+				}
+			}, 3000);
+
+			// Fade out & return
+			function fadeOut() {
+				document.body.style.transition = 'opacity 1.2s';
+				document.body.style.opacity = '0';
+				setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+			}
+		</script>
+	</body>
+</html>

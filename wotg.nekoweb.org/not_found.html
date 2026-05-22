@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<title>404</title>
+
+		<style>
+
+			@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@100;200;300&display=swap');
+
+			*{
+			    margin:0;
+			    padding:0;
+			    box-sizing:border-box;
+			}
+
+			body{
+			    width:100%;
+			    height:100vh;
+
+			    overflow:hidden;
+
+			    background:#000;
+
+			    display:flex;
+			    align-items:center;
+			    justify-content:center;
+
+			    font-family:'IBM Plex Mono', monospace;
+
+			    color:#bfbfbf;
+
+			    cursor:crosshair;
+			}
+
+			/* BACKGROUND */
+
+			.background{
+			    position:fixed;
+			    inset:0;
+
+			    background:
+			    radial-gradient(circle at center,
+			    rgba(14,14,14,.96) 0%,
+			    rgba(5,5,5,1) 40%,
+			    rgba(0,0,0,1) 100%);
+			}
+
+			/* FRACTAL */
+
+			#fractal{
+			    position:fixed;
+			    inset:0;
+
+			    width:100%;
+			    height:100%;
+
+			    opacity:.12;
+
+			    pointer-events:none;
+
+			    mix-blend-mode:screen;
+
+			    filter:
+			    blur(.3px)
+			    contrast(120%);
+			}
+
+			/* LIGHT */
+
+			.light{
+			    position:absolute;
+
+			    width:700px;
+			    height:700px;
+
+			    border-radius:50%;
+
+			    background:
+			    radial-gradient(circle,
+			    rgba(255,255,255,.02) 0%,
+			    rgba(120,120,255,.012) 30%,
+			    transparent 70%);
+
+			    filter:blur(60px);
+
+			    animation:pulse 14s ease-in-out infinite;
+			}
+
+			@keyframes pulse{
+
+			    0%,100%{
+			        opacity:.4;
+			        transform:scale(1);
+			    }
+
+			    50%{
+			        opacity:.7;
+			        transform:scale(1.08);
+			    }
+			}
+
+			/* FOG */
+
+			.fog{
+			    position:absolute;
+
+			    width:150vw;
+			    height:150vh;
+
+			    background:
+			    radial-gradient(circle,
+			    rgba(255,255,255,.008) 0%,
+			    transparent 70%);
+
+			    filter:blur(160px);
+
+			    animation:drift 50s linear infinite;
+			}
+
+			.fog.two{
+			    animation-direction:reverse;
+			    opacity:.5;
+			}
+
+			@keyframes drift{
+
+			    from{
+			        transform:translate(-5%, -5%) rotate(0deg);
+			    }
+
+			    to{
+			        transform:translate(5%, 5%) rotate(360deg);
+			    }
+			}
+
+			/* NOISE */
+
+			.noise{
+			    position:fixed;
+			    inset:0;
+
+			    opacity:.03;
+
+			    pointer-events:none;
+
+			    background-image:
+			    repeating-radial-gradient(#fff 0 1px, transparent 1px 100%);
+
+			    background-size:3px 3px;
+
+			    animation:noise .25s infinite;
+			}
+
+			@keyframes noise{
+			    0%{transform:translate(0,0);}
+			    25%{transform:translate(1px,-1px);}
+			    50%{transform:translate(-1px,1px);}
+			    75%{transform:translate(1px,1px);}
+			    100%{transform:translate(0,0);}
+			}
+
+			/* VIGNETTE */
+
+			.vignette{
+			    position:fixed;
+			    inset:0;
+
+			    pointer-events:none;
+
+			    background:
+			    radial-gradient(circle,
+			    transparent 10%,
+			    rgba(0,0,0,.97) 100%);
+			}
+
+			/* INTERFERENCE */
+
+			.interference{
+
+			    position:fixed;
+
+			    top:-10%;
+			    left:0;
+
+			    width:100%;
+			    height:2px;
+
+			    background:rgba(255,255,255,.03);
+
+			    animation:scan 10s linear infinite;
+			}
+
+			@keyframes scan{
+
+			    from{
+			        top:-10%;
+			    }
+
+			    to{
+			        top:110%;
+			    }
+			}
+
+			/* CONTENT */
+
+			.container{
+			    position:relative;
+			    z-index:10;
+
+			    text-align:center;
+
+			    animation:appear 5s ease;
+			}
+
+			@keyframes appear{
+
+			    from{
+			        opacity:0;
+			        filter:blur(10px);
+			    }
+
+			    to{
+			        opacity:1;
+			        filter:blur(0);
+			    }
+			}
+
+			/* SMALL TEXT */
+
+			.whisper{
+
+			    margin-bottom:30px;
+
+			    font-size:10px;
+
+			    letter-spacing:10px;
+
+			    color:rgba(255,255,255,.08);
+
+			    animation:fading 8s infinite;
+			}
+
+			@keyframes fading{
+
+			    0%,100%{
+			        opacity:.15;
+			    }
+
+			    50%{
+			        opacity:.05;
+			    }
+			}
+
+			/* 404 */
+
+			.code{
+			    position:relative;
+
+			    font-size:180px;
+			    font-weight:200;
+
+			    letter-spacing:35px;
+
+			    color:rgba(255,255,255,.82);
+
+			    text-shadow:
+			    0 0 20px rgba(255,255,255,.03),
+			    0 0 70px rgba(120,120,255,.03);
+
+			    animation:flicker 12s infinite;
+			}
+
+			.code::before,
+			.code::after{
+
+			    content:attr(data-text);
+
+			    position:absolute;
+			    top:0;
+			    left:0;
+
+			    width:100%;
+			}
+
+			.code::before{
+			    transform:translate(-2px,0);
+
+			    color:#5663ff;
+
+			    opacity:.07;
+			}
+
+			.code::after{
+			    transform:translate(2px,0);
+
+			    color:#a855ff;
+
+			    opacity:.05;
+			}
+
+			@keyframes flicker{
+
+			    0%,100%{
+			        opacity:1;
+			    }
+
+			    2%{
+			        opacity:.75;
+			    }
+
+			    3%{
+			        opacity:1;
+			    }
+
+			    9%{
+			        opacity:.82;
+			    }
+
+			    10%{
+			        opacity:1;
+			    }
+
+			    72%{
+			        opacity:.9;
+			    }
+			}
+
+			/* TITLE */
+
+			.message{
+
+			    margin-top:-15px;
+
+			    font-size:11px;
+
+			    letter-spacing:12px;
+
+			    text-transform:uppercase;
+
+			    color:rgba(255,255,255,.16);
+			}
+
+			/* LINE */
+
+			.line{
+
+			    width:1px;
+			    height:140px;
+
+			    margin:70px auto;
+
+			    background:
+			    linear-gradient(
+			        to bottom,
+			        transparent,
+			        rgba(255,255,255,.05),
+			        transparent
+			    );
+			}
+
+			/* TEXT */
+
+			.desc{
+
+			    font-size:9px;
+
+			    line-height:32px;
+
+			    letter-spacing:7px;
+
+			    color:rgba(255,255,255,.10);
+			}
+
+			/* BUTTON */
+
+			.button{
+
+			    display:inline-block;
+
+			    margin-top:60px;
+
+			    padding:14px 34px;
+
+			    border:1px solid rgba(255,255,255,.04);
+
+			    color:rgba(255,255,255,.22);
+
+			    text-decoration:none;
+
+			    font-size:9px;
+
+			    letter-spacing:8px;
+
+			    transition:.5s ease;
+
+			    background:rgba(255,255,255,.01);
+			}
+
+			.button:hover{
+
+			    color:rgba(255,255,255,.7);
+
+			    border-color:rgba(255,255,255,.12);
+
+			    background:rgba(255,255,255,.03);
+
+			    box-shadow:
+			    0 0 40px rgba(255,255,255,.03);
+			}
+
+			/* ENTER SCREEN */
+
+			.overlay{
+			    position:fixed;
+			    inset:0;
+
+			    z-index:999;
+
+			    display:flex;
+			    align-items:center;
+			    justify-content:center;
+
+			    background:#000;
+
+			    transition:1.5s ease;
+			}
+
+			.overlay.hidden{
+			    opacity:0;
+			    pointer-events:none;
+			}
+
+			.enter-wrapper{
+			    text-align:center;
+
+			    animation:appear 2s ease;
+			}
+
+			.enter-title{
+
+			    font-size:90px;
+			    font-weight:200;
+
+			    letter-spacing:20px;
+
+			    color:rgba(255,255,255,.15);
+
+			    margin-bottom:40px;
+
+			    text-shadow:
+			    0 0 30px rgba(255,255,255,.05);
+			}
+
+			.enter-button{
+
+			    padding:18px 55px;
+
+			    background:
+			    linear-gradient(
+			        180deg,
+			        rgba(255,255,255,.12),
+			        rgba(255,255,255,.04)
+			    );
+
+			    border:1px solid rgba(255,255,255,.15);
+
+			    color:rgba(255,255,255,.9);
+
+			    font-family:'IBM Plex Mono', monospace;
+
+			    font-size:13px;
+
+			    letter-spacing:10px;
+
+			    cursor:pointer;
+
+			    transition:.4s ease;
+
+			    backdrop-filter:blur(10px);
+
+			    box-shadow:
+			    0 0 40px rgba(255,255,255,.05),
+			    inset 0 0 20px rgba(255,255,255,.03);
+			}
+
+			.enter-button:hover{
+
+			    transform:scale(1.05);
+
+			    background:
+			    linear-gradient(
+			        180deg,
+			        rgba(255,255,255,.18),
+			        rgba(255,255,255,.06)
+			    );
+
+			    box-shadow:
+			    0 0 70px rgba(255,255,255,.08),
+			    0 0 120px rgba(120,120,255,.04);
+			}
+
+			.enter-sub{
+
+			    margin-top:22px;
+
+			    font-size:9px;
+
+			    letter-spacing:5px;
+
+			    color:rgba(255,255,255,.18);
+			}
+		</style>
+	</head>
+
+	<body>
+		<!-- AUDIO -->
+
+		<audio id="bgmusic" loop>
+			<source src="losted.mp3" type="audio/mpeg" />
+		</audio>
+
+		<!-- ENTER SCREEN -->
+
+		<div class="overlay" id="overlay">
+			<div class="enter-wrapper">
+				<div class="enter-title">404</div>
+
+				<button class="enter-button" id="enterButton">ENTER</button>
+
+				<div class="enter-sub">losted.mp3 will start playing</div>
+			</div>
+		</div>
+
+		<!-- VISUALS -->
+
+		<div class="background"></div>
+
+		<canvas id="fractal"></canvas>
+
+		<div class="light"></div>
+
+		<div class="fog"></div>
+		<div class="fog two"></div>
+
+		<div class="noise"></div>
+		<div class="vignette"></div>
+
+		<div class="interference"></div>
+
+		<!-- CONTENT -->
+
+		<div class="container">
+			<div class="whisper">no one is waiting for you here</div>
+
+			<div class="code" data-text="404">404</div>
+
+			<div class="message">forgotten frequency</div>
+
+			<div class="line"></div>
+
+			<div class="desc">
+				THE WORLD HAS GONE SILENT
+				<br />
+				ONLY EMPTY SIGNALS REMAIN
+				<br />
+				YOU WERE NEVER SUPPOSED TO BE HERE
+			</div>
+
+			<a href="/" class="button">RETURN</a>
+		</div>
+
+		<!-- SCRIPT -->
+
+		<script>
+
+			/* AUDIO */
+
+			const overlay = document.getElementById('overlay');
+			const music = document.getElementById('bgmusic');
+			const enterButton = document.getElementById('enterButton');
+
+			enterButton.addEventListener('click', () => {
+
+			    music.volume = 0.45;
+
+			    music.play();
+
+			    overlay.classList.add('hidden');
+
+			});
+
+			/* FRACTAL */
+
+			const canvas = document.getElementById('fractal');
+			const ctx = canvas.getContext('2d');
+
+			function resize(){
+
+			    canvas.width = window.innerWidth;
+			    canvas.height = window.innerHeight;
+			}
+
+			resize();
+
+			window.addEventListener('resize', resize);
+
+			let time = 0;
+
+			function draw(){
+
+			    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+			    const cx = canvas.width / 2;
+			    const cy = canvas.height / 2;
+
+			    for(let i = 0; i < 140; i++){
+
+			        const angle =
+			        i * 0.45 +
+			        time * 0.0005;
+
+			        const radius =
+			        i * 4.5;
+
+			        const x =
+			        cx + Math.cos(angle) * radius;
+
+			        const y =
+			        cy + Math.sin(angle) * radius;
+
+			        const size =
+			        Math.sin(time * 0.001 + i * 0.2) * 8 + 12;
+
+			        ctx.beginPath();
+
+			        ctx.strokeStyle =
+			        `rgba(
+			            ${120 + Math.sin(i)*40},
+			            ${110 + Math.cos(i)*20},
+			            255,
+			            0.045
+			        )`;
+
+			        ctx.lineWidth = 1;
+
+			        for(let j = 0; j < 6; j++){
+
+			            const a =
+			            angle + j * Math.PI / 3;
+
+			            const px =
+			            x + Math.cos(a) * size;
+
+			            const py =
+			            y + Math.sin(a) * size;
+
+			            if(j === 0){
+			                ctx.moveTo(px, py);
+			            }else{
+			                ctx.lineTo(px, py);
+			            }
+			        }
+
+			        ctx.closePath();
+			        ctx.stroke();
+			    }
+
+			    time++;
+
+			    requestAnimationFrame(draw);
+			}
+
+			draw();
+		</script>
+	</body>
+</html>
